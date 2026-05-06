@@ -1,0 +1,259 @@
+<div class="mini-audio-player">
+    <button class="audio-button" onclick="toggleAudio()" id="audioButton" aria-label="Play audio">
+        <span class="sound-icon" id="soundIcon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </span>
+
+        <span id="buttonText">Play Audio</span>
+
+        <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+
+        <span class="progress-fill" id="progressFill"></span>
+    </button>
+
+    <div class="speed-row">
+        <span class="speed-label">Speed</span>
+
+        <select id="speedSelect" class="speed-select" aria-label="Playback speed">
+            <option value="1">1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+        </select>
+    </div>
+
+    <audio id="curlAudio">
+        <source src="4.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+</div>
+
+<style>
+    @font-face {
+        font-family: "ABeeZee";
+        src: url("../curlhaircontest5/ABeeZee-Regular.woff2") format("woff2");
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+    }
+
+    .mini-audio-player {
+        font-family: "ABeeZee", Arial, sans-serif;
+        background: transparent;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .audio-button {
+        position: relative;
+        overflow: hidden;
+        font-family: "ABeeZee", Arial, sans-serif;
+        font-size: 18px;
+        color: #ffffff;
+        background-color: #8E75C7;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 22px;
+        min-width: 165px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease, min-width 0.25s ease;
+    }
+
+    .audio-button:hover {
+        background-color: #C8B6E2;
+        color: #000000;
+        transform: translateY(-2px);
+    }
+
+    .audio-button.playing {
+        background-color: #8E75C7;
+        color: #ffffff;
+        min-width: 230px;
+    }
+
+    .audio-button.paused {
+        background-color: #8E75C7;
+        color: #ffffff;
+        min-width: 230px;
+    }
+
+    .progress-fill {
+        position: absolute;
+        inset: 0;
+        width: 0%;
+        background-color: #C8B6E2;
+        opacity: 0.85;
+        z-index: 0;
+        transition: width 0.1s linear;
+    }
+
+    .audio-button > span:not(.progress-fill) {
+        position: relative;
+        z-index: 1;
+    }
+
+    .audio-button.playing .time-display,
+    .audio-button.paused .time-display {
+        display: inline;
+    }
+
+    .audio-button.playing #buttonText,
+    .audio-button.paused #buttonText {
+        display: none;
+    }
+
+    .time-display {
+        display: none;
+        color: inherit;
+        white-space: nowrap;
+    }
+
+    .sound-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+    }
+
+    .sound-icon span {
+        display: block;
+        width: 4px;
+        background-color: currentColor;
+        border-radius: 999px;
+    }
+
+    .sound-icon span:nth-child(1) {
+        height: 8px;
+    }
+
+    .sound-icon span:nth-child(2) {
+        height: 14px;
+    }
+
+    .sound-icon span:nth-child(3) {
+        height: 18px;
+    }
+
+    .audio-button.playing .sound-icon span {
+        animation: soundWave 0.7s infinite ease-in-out;
+    }
+
+    .audio-button.playing .sound-icon span:nth-child(2) {
+        animation-delay: 0.12s;
+    }
+
+    .audio-button.playing .sound-icon span:nth-child(3) {
+        animation-delay: 0.24s;
+    }
+
+    @keyframes soundWave {
+        0%, 100% {
+            transform: scaleY(0.55);
+        }
+        50% {
+            transform: scaleY(1.2);
+        }
+    }
+
+    .speed-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .speed-label {
+        font-family: "ABeeZee", Arial, sans-serif;
+        font-size: 11px;
+        color: #5F4A91;
+    }
+
+    .speed-select {
+        font-family: "ABeeZee", Arial, sans-serif;
+        font-size: 11px;
+        color: #5F4A91;
+        background-color: #F3EEFA;
+        border: 1px solid #8E75C7;
+        border-radius: 999px;
+        padding: 3px 7px;
+        cursor: pointer;
+    }
+
+    .speed-select:focus {
+        outline: 2px solid #C8B6E2;
+        outline-offset: 1px;
+    }
+</style>
+
+<script>
+    const audio = document.getElementById("curlAudio");
+    const audioButton = document.getElementById("audioButton");
+    const buttonText = document.getElementById("buttonText");
+    const timeDisplay = document.getElementById("timeDisplay");
+    const progressFill = document.getElementById("progressFill");
+    const speedSelect = document.getElementById("speedSelect");
+
+    function toggleAudio() {
+        if (audio.paused) {
+            audio.play();
+            audioButton.classList.add("playing");
+            audioButton.classList.remove("paused");
+        } else {
+            audio.pause();
+            audioButton.classList.remove("playing");
+            audioButton.classList.add("paused");
+        }
+    }
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) {
+            return "0:00";
+        }
+
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+
+        return minutes + ":" + remainingSeconds.toString().padStart(2, "0");
+    }
+
+    function updateTimeDisplay() {
+        const current = formatTime(audio.currentTime);
+        const duration = formatTime(audio.duration);
+
+        timeDisplay.textContent = current + " / " + duration;
+
+        if (!isNaN(audio.duration) && audio.duration > 0) {
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = progressPercent + "%";
+        }
+    }
+
+    audio.addEventListener("loadedmetadata", updateTimeDisplay);
+
+    audio.addEventListener("timeupdate", updateTimeDisplay);
+
+    speedSelect.addEventListener("change", function () {
+        audio.playbackRate = parseFloat(speedSelect.value);
+    });
+
+    audio.addEventListener("ended", function () {
+        audioButton.classList.remove("playing");
+        audioButton.classList.remove("paused");
+        buttonText.textContent = "Play Audio";
+        progressFill.style.width = "0%";
+        timeDisplay.textContent = "0:00 / " + formatTime(audio.duration);
+    });
+</script>
